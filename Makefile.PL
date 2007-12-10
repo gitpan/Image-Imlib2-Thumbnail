@@ -10,6 +10,7 @@ WriteMakefile(
     PREREQ_PM    => {
         'Class::Accessor::Fast'      => '0',
         'Image::Imlib2'              => '2.00',
+        'Path::Class'                => '0', 
     }
 );
 

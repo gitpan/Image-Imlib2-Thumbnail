@@ -3,10 +3,9 @@ use strict;
 use warnings;
 use Image::Imlib2;
 use Path::Class;
-use Perl6::Say;
 use base qw(Class::Accessor::Fast);
 __PACKAGE__->mk_accessors(qw(sizes));
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 sub new {
     my $class = shift;
@@ -81,8 +80,14 @@ sub generate {
     my $original_type
         = $original_width > $original_height ? 'landscape' : 'portrait';
 
-    my @thumbnails;
-
+    my @thumbnails = (
+        {   filename => $filename,
+            name     => 'original',
+            width    => $original_width,
+            height   => $original_height,
+            type     => $original_type,
+        }
+    );
     foreach my $size ( @{ $self->sizes } ) {
         my ( $name, $width, $height, $type )
             = ( $size->{name}, $size->{width}, $size->{height},
@@ -136,11 +141,11 @@ Image::Imlib2::Thumbnail - Generate a set of thumbnails of an image
   # generates a set of thumbnails for $source image in $directory
   my @thumbnails = $thumbnail->generate( $source, $directory );
   foreach my $thumbnail (@thumbnails) {
-    my $name = $header->{name};
-    my $width= $header->{width};
-    my $height = $header->{height};
-    my $type = $header->{type};
-    my $filename = $header->{filename};
+    my $name = $thumbnail->{name};
+    my $width= $thumbnail->{width};
+    my $height = $thumbnail->{height};
+    my $type = $thumbnail->{type};
+    my $filename = $thumbnail->{filename};
     print "$name/$type is $width x $height at $filename\n";
   }
 
@@ -186,14 +191,16 @@ The constructor:
 
 =head2 generate
 
-  # generates a set of thumbnails for $source image in $directory
+Generates a set of thumbnails for $source image in $directory.
+Will also include the original image:
+
   my @thumbnails = $thumbnail->generate( $source, $directory );
   foreach my $thumbnail (@thumbnails) {
-    my $name = $header->{name};
-    my $width= $header->{width};
-    my $height = $header->{height};
-    my $type = $header->{type};
-    my $filename = $header->{filename};
+    my $name = $thumbnail->{name};
+    my $width= $thumbnail->{width};
+    my $height = $thumbnail->{height};
+    my $type = $thumbnail->{type};
+    my $filename = $thumbnail->{filename};
     print "$name/$type is $width x $height at $filename\n";
   }
 

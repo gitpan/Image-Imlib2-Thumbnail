@@ -2,6 +2,7 @@ CHANGES
 lib/Image/Imlib2/Thumbnail.pm
 Makefile.PL
 MANIFEST			This list of files
+README
 t/1024x768.png
 t/1280x1024.png
 t/1280x960.png

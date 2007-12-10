@@ -1,4 +1,8 @@
 Revision history for Perl module Image::Imlib2::Thumbnail:
 
+0.32 Mon Dec 10 09:09:35 GMT 2007
+  - also return the original image
+  - add Path::Class to dependencies, remove Perl6::Say
+
 0.31 Fri Dec  7 17:49:35 GMT 2007
   - initial release
