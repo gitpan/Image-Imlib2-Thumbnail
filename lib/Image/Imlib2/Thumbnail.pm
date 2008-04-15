@@ -5,7 +5,7 @@ use Image::Imlib2;
 use Path::Class;
 use base qw(Class::Accessor::Fast);
 __PACKAGE__->mk_accessors(qw(sizes));
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 sub new {
     my $class = shift;
@@ -94,22 +94,34 @@ sub generate {
             $size->{type} );
         next unless $type eq $original_type;
 
-        my $aspect_ratio = $height / $width;
-        my ( $new_width, $new_height );
-        $new_width  = $original_width;
-        $new_height = $original_width * $aspect_ratio;
+        my $scaled_image;
 
-        if ( $new_height > $original_height ) {
-            $new_width  = $original_height / $aspect_ratio;
-            $new_height = $original_height;
+        if ( $width && $height ) {
+            my ( $new_width, $new_height );
+            my $aspect_ratio = $height / $width;
+            $new_width  = $original_width;
+            $new_height = $original_width * $aspect_ratio;
+
+            if ( $new_height > $original_height ) {
+                $new_width  = $original_height / $aspect_ratio;
+                $new_height = $original_height;
+            }
+            my $x = int( ( $original_width - $new_width ) / 2 );
+            my $y = int( ( $original_height - $new_height ) / 2 );
+
+            my $cropped_image
+                = $image->crop( $x, $y, $new_width, $new_height );
+            $scaled_image
+                = $cropped_image->create_scaled_image( $width, $height );
+
+        } elsif ( $width ) {
+            $scaled_image = $image->create_scaled_image( $width, 0 );
+
+        } else {
+            $scaled_image = $image->create_scaled_image( 0, $height );
+
         }
 
-        my $x = int( ( $original_width - $new_width ) / 2 );
-        my $y = int( ( $original_height - $new_height ) / 2 );
-
-        my $cropped_image = $image->crop( $x, $y, $new_width, $new_height );
-        my $scaled_image
-            = $cropped_image->create_scaled_image( $width, $height );
         my $destination = file( $directory, "$name.jpg" )->stringify;
         $scaled_image->set_quality(75);
         $scaled_image->save($destination);
@@ -212,9 +224,12 @@ Add an extra size:
       {   type   => 'landscape',
           name   => 'header',
           width  => 350,
-          height => 200
+          height => 200,
       }
   );
+  
+If width or height are 0, then this retains the aspect ratio and 
+performs no cropping.
 
 =head1 AUTHOR
 
@@ -222,7 +237,7 @@ Leon Brocard, acme@astray.com
 
 =head1 COPYRIGHT
 
-Copyright (c) 2007 Leon Brocard. All rights reserved. This program is
+Copyright (c) 2007-8 Leon Brocard. All rights reserved. This program is
 free software; you can redistribute it and/or modify it under the same
 terms as Perl itself.
 

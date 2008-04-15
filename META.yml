@@ -1,11 +1,11 @@
 --- #YAML:1.0
 name:                Image-Imlib2-Thumbnail
-version:             0.32
+version:             0.33
 abstract:            ~
 license:             perl
 author:              
     - Leon Brocard <acme@astray.com>
-generated_by:        ExtUtils::MakeMaker version 6.38
+generated_by:        ExtUtils::MakeMaker version 6.42
 distribution_type:   module
 requires:     
     Class::Accessor::Fast:         0

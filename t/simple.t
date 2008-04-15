@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use lib 'lib';
 use Path::Class;
-use Test::More tests => 125;
+use Test::More tests => 97;
 
 use_ok('Image::Imlib2::Thumbnail');
 
@@ -19,17 +19,39 @@ $thumbnail->add_size(
     }
 );
 
+$thumbnail->add_size(
+    {   type   => 'portrait',
+        name   => 'header',
+        width  => 350,
+        height => 200
+    }
+);
+
+$thumbnail->add_size(
+    {   type   => 'landscape',
+        name   => '200_width',
+        width  => 200,
+        height => 0,
+    }
+);
+$thumbnail->add_size(
+    {   type   => 'portrait',
+        name   => '200_height',
+        width  => 0,
+        height => 200,
+    }
+);
+
 foreach my $source (<t/*.png>) {
     my $basename = file($source)->basename;
     $basename =~ s/.png//;
     my $directory = dir( 't', 'tmp', $basename );
     $directory->mkpath;
     my @thumbnails = $thumbnail->generate( $source, $directory->stringify );
+
     my ($header) = grep { $_->{name} eq 'header' } @thumbnails;
     is( $header->{name},   'header' );
     is( $header->{width},  '350' );
     is( $header->{height}, '200' );
-    is( $header->{type},   'landscape' );
 }
-
 
