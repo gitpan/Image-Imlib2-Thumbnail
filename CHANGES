@@ -1,5 +1,8 @@
 Revision history for Perl module Image::Imlib2::Thumbnail:
 
+0.34 Wed Apr 16 14:41:07 BST 2008
+  - be sure to report the right size when not cropping
+
 0.33 Tue Apr 15 14:42:36 BST 2008
   - having a width or height as zero means just scaling, no cropping
 

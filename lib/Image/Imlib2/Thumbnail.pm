@@ -5,7 +5,7 @@ use Image::Imlib2;
 use Path::Class;
 use base qw(Class::Accessor::Fast);
 __PACKAGE__->mk_accessors(qw(sizes));
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 
 sub new {
     my $class = shift;
@@ -114,12 +114,12 @@ sub generate {
             $scaled_image
                 = $cropped_image->create_scaled_image( $width, $height );
 
-        } elsif ( $width ) {
+        } elsif ($width) {
             $scaled_image = $image->create_scaled_image( $width, 0 );
-
+            $height = $scaled_image->height;
         } else {
             $scaled_image = $image->create_scaled_image( 0, $height );
-
+            $width = $scaled_image->width;
         }
 
         my $destination = file( $directory, "$name.jpg" )->stringify;
