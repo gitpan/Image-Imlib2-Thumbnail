@@ -1,11 +1,13 @@
 package Image::Imlib2::Thumbnail;
 use strict;
 use warnings;
+use File::Basename qw(fileparse);
 use Image::Imlib2;
+use MIME::Types;
 use Path::Class;
 use base qw(Class::Accessor::Fast);
 __PACKAGE__->mk_accessors(qw(sizes));
-our $VERSION = '0.34';
+our $VERSION = '0.40';
 
 sub new {
     my $class = shift;
@@ -79,6 +81,11 @@ sub generate {
         = ( $image->width, $image->height );
     my $original_type
         = $original_width > $original_height ? 'landscape' : 'portrait';
+    my $original_extension = [ fileparse( $filename, qr/\.[^.]*?$/ ) ]->[2]
+        || '.jpg';
+    $original_extension =~ s/^\.//;
+
+    my $mime_type = MIME::Types->new->mimeTypeOf($original_extension);
 
     my @thumbnails = (
         {   filename => $filename,
@@ -88,11 +95,15 @@ sub generate {
             type     => $original_type,
         }
     );
+
     foreach my $size ( @{ $self->sizes } ) {
         my ( $name, $width, $height, $type )
             = ( $size->{name}, $size->{width}, $size->{height},
             $size->{type} );
         next unless $type eq $original_type;
+
+        # add quality from the size definition if provided
+        my $quality = $size->{quality} || 75;
 
         my $scaled_image;
 
@@ -122,16 +133,19 @@ sub generate {
             $width = $scaled_image->width;
         }
 
-        my $destination = file( $directory, "$name.jpg" )->stringify;
-        $scaled_image->set_quality(75);
+        my $destination
+            = file( $directory, $name . '.' . $original_extension )
+            ->stringify;
+        $scaled_image->set_quality($quality);
         $scaled_image->save($destination);
         push @thumbnails,
             {
-            filename => $destination,
-            name     => $name,
-            width    => $width,
-            height   => $height,
-            type     => $type,
+            filename  => $destination,
+            name      => $name,
+            width     => $width,
+            height    => $height,
+            type      => $type,
+            mime_type => $mime_type,
             };
     }
     return @thumbnails;
@@ -154,11 +168,12 @@ Image::Imlib2::Thumbnail - Generate a set of thumbnails of an image
   my @thumbnails = $thumbnail->generate( $source, $directory );
   foreach my $thumbnail (@thumbnails) {
     my $name = $thumbnail->{name};
-    my $width= $thumbnail->{width};
+    my $width = $thumbnail->{width};
     my $height = $thumbnail->{height};
     my $type = $thumbnail->{type};
     my $filename = $thumbnail->{filename};
-    print "$name/$type is $width x $height at $filename\n";
+    my $mime_type = $thumbnail->{mime_type};
+    print "$name/$type/$mime_type is $width x $height at $filename\n";
   }
 
 =head1 DESCRIPTION
@@ -209,11 +224,12 @@ Will also include the original image:
   my @thumbnails = $thumbnail->generate( $source, $directory );
   foreach my $thumbnail (@thumbnails) {
     my $name = $thumbnail->{name};
-    my $width= $thumbnail->{width};
+    my $width = $thumbnail->{width};
     my $height = $thumbnail->{height};
     my $type = $thumbnail->{type};
     my $filename = $thumbnail->{filename};
-    print "$name/$type is $width x $height at $filename\n";
+    my $mime_type = $thumbnail->{mime_type};
+    print "$name/$type/$mime_type is $width x $height at $filename\n";
   }
 
 =head2 add_size
@@ -221,15 +237,19 @@ Will also include the original image:
 Add an extra size:
 
   $thumbnail->add_size(
-      {   type   => 'landscape',
-          name   => 'header',
-          width  => 350,
-          height => 200,
+      {   type    => 'landscape',
+          name    => 'header',
+          width   => 350,
+          height  => 200,
+          quality => 80,
       }
   );
   
 If width or height are 0, then this retains the aspect ratio and 
 performs no cropping.
+
+The quality is the JPEG quality compression ratio. This defaults
+to 75.
 
 =head1 AUTHOR
 
@@ -237,7 +257,10 @@ Leon Brocard, acme@astray.com
 
 =head1 COPYRIGHT
 
-Copyright (c) 2007-8 Leon Brocard. All rights reserved. This program is
-free software; you can redistribute it and/or modify it under the same
-terms as Perl itself.
+Copyright (c) 2007-8 Leon Brocard. All rights reserved.
+
+=head1 LICENSE
+
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
